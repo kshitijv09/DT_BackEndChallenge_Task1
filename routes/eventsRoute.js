@@ -1,7 +1,9 @@
 const express = require("express");
 
 const router = express.Router();
-//const auth = require("../controllers/authController");
+const events = require("../controllers/eventController");
 
-router.route("/events").get().post();
-router.route("/events/:id").get().put().delete();
+router.route("/events").post(events.addEvent);
+//router.route("/events/:id");
+
+module.exports = router;
