@@ -2,27 +2,6 @@ const connectDB = require("../db/connect");
 const { ObjectId } = require("mongodb");
 const multer = require("multer");
 const upload = multer().single("image");
-/* const getSingleEvent = async (req, res) => {
-  const client = await connectDB();
-  const db = client.db("EventHandler"); // Replace with your database name
-
-  const collection = db.collection("events");
-
-  const eventId = req.query.id;
-
-  try {
-    const event = await collection.findOne({ _id: new ObjectId(eventId) });
-    if (!event) {
-      res.status(404).json({ error: "Event not found" });
-      return;
-    }
-
-    res.json(event);
-  } catch (error) {
-    console.error("Failed to get event:", error);
-    res.status(500).json({ error: "Failed to get event" });
-  }
-}; */
 
 const getEvents = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -32,7 +11,7 @@ const getEvents = async (req, res) => {
 
   try {
     const client = await connectDB();
-    const db = client.db("EventHandler"); // Replace with your database name
+    const db = client.db("EventHandler");
 
     const collection = db.collection("events");
 
@@ -85,13 +64,13 @@ const addEvent = async (req, res) => {
       }
 
       const client = await connectDB();
-      const db = client.db("EventHandler"); // Replace with your database name
+      const db = client.db("EventHandler");
 
       const collection = db.collection("events");
 
       const eventData = {
         type: "event",
-        uid: 18,
+        uid: Math.floor(Math.random() * 1000 + 1),
         name: req.body.name,
         tagline: req.body.tagline,
         schedule: new Date(req.body.schedule),
@@ -106,41 +85,36 @@ const addEvent = async (req, res) => {
         attendees: req.body.attendees,
       };
 
-      /* try {
-    if (!eventData.name) {
-      throw new Error("Name is required.");
-    }
+      if (!eventData.name) {
+        throw new Error("Name is required.");
+      }
 
-    if (!eventData.schedule || isNaN(eventData.schedule.getTime())) {
-      throw new Error("Invalid schedule date.");
-    }
+      if (!eventData.description) {
+        throw new Error("Description is required.");
+      }
 
-    if (!eventData.description) {
-      throw new Error("Description is required.");
-    }
+      if (!eventData.moderator) {
+        throw new Error("Moderator is required.");
+      }
 
-    if (!eventData.moderator) {
-      throw new Error("Moderator is required.");
-    }
+      if (!eventData.category) {
+        throw new Error("Category is required.");
+      }
 
-    if (!eventData.category) {
-      throw new Error("Category is required.");
-    }
+      if (!eventData.sub_category) {
+        throw new Error("Sub-category is required.");
+      }
 
-    if (!eventData.sub_category) {
-      throw new Error("Sub-category is required.");
-    }
+      if (!eventData.rigor_rank || isNaN(eventData.rigor_rank)) {
+        throw new Error("Invalid rigor rank.");
+      }
 
-    if (!eventData.rigor_rank || isNaN(eventData.rigor_rank)) {
-      throw new Error("Invalid rigor rank.");
-    }
-
-    if (!Array.isArray(eventData.attendees)) {
-      throw new Error("Attendees must be an array.");
-    } */
+      if (!Array.isArray(eventData.attendees)) {
+        throw new Error("Attendees must be an array.");
+      }
 
       await collection.insertOne(eventData);
-      res.json({ msg: "Item Updated" });
+      res.json({ msg: "Item Added" });
     });
   } catch (error) {
     console.error("Failed to create event:", error);
@@ -150,18 +124,18 @@ const addEvent = async (req, res) => {
 
 const updateEvent = async (req, res) => {
   const client = await connectDB();
-  const db = client.db("EventHandler"); // Replace with your database name
+  const db = client.db("EventHandler");
 
   const collection = db.collection("events");
 
   const eventId = req.params.id;
   const eventData = req.body;
   try {
-    const result = await collection.updateOne(
+    await collection.updateOne(
       { _id: new ObjectId(eventId) },
       { $set: eventData }
     );
-    res.json({ name: result.name });
+    res.json({ msg: "Item  Updated" });
   } catch (error) {
     console.error("Failed to update event:", error);
     res.status(500).json({ error: "Failed to update event" });
@@ -170,17 +144,16 @@ const updateEvent = async (req, res) => {
 
 const deleteEvent = async (req, res) => {
   const client = await connectDB();
-  const db = client.db("EventHandler"); // Replace with your database name
+  const db = client.db("EventHandler");
 
   const collection = db.collection("events");
 
   const eventId = req.params.id;
 
   try {
-    const result = await collection.deleteOne({ _id: new ObjectId(eventId) });
-    res.json({ result });
+    await collection.deleteOne({ _id: new ObjectId(eventId) });
+    res.json({ msg: "Item Deleted" });
   } catch (error) {
-    console.error("Failed to delete event:", error);
     res.status(500).json({ error: "Failed to delete event" });
   }
 };
