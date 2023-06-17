@@ -1,13 +1,13 @@
 const connectDB = require("../db/connect");
 const { ObjectId } = require("mongodb");
 
-const getEvents = async (req, res) => {
+const getSingleEvent = async (req, res) => {
   const client = await connectDB();
   const db = client.db("EventHandler"); // Replace with your database name
 
   const collection = db.collection("events");
 
-  const eventId = req.params.id;
+  const eventId = req.query.id;
 
   try {
     const event = await collection.findOne({ _id: new ObjectId(eventId) });
@@ -87,9 +87,10 @@ const addEvent = async (req, res) => {
   }
 };
 
-const getEvent = async (req, res) => {
+const getEvents = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
+  const eventId = req.query.id || null;
   const type = req.query.type || "latest";
 
   try {
@@ -101,24 +102,30 @@ const getEvent = async (req, res) => {
     const totalCount = await collection.countDocuments();
 
     let query = {};
-    if (type === "latest") {
-      query = collection.find().sort({ schedule: -1 });
+
+    if (eventId) {
+      query = await collection.findOne({ _id: new ObjectId(eventId) });
+      res.json({ query });
     } else {
-      query = collection.find();
+      if (type === "latest") {
+        query = collection.find().sort({ schedule: -1 });
+      } else {
+        query = collection.find();
+      }
+
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const events = await query
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray();
+
+      res.json({
+        events,
+        currentPage: page,
+        totalPages,
+      });
     }
-
-    const totalPages = Math.ceil(totalCount / limit);
-
-    const events = await query
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .toArray();
-
-    res.json({
-      events,
-      currentPage: page,
-      totalPages,
-    });
   } catch (error) {
     console.error("Failed to get events:", error);
     res.status(500).json({ error: "Failed to get events" });
@@ -126,4 +133,4 @@ const getEvent = async (req, res) => {
 };
 const updateEvent = async (req, res) => {};
 
-module.exports = { getEvent, getEvents, addEvent };
+module.exports = { getEvents, getSingleEvent, addEvent };
