@@ -5,12 +5,14 @@ const connectDB = require("./db/connect");
 require("dotenv").config();
 
 const multer = require("multer");
-const upload = multer();
 
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use("/api/v3/app", eventsRoute);
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const start = async () => {
   try {
